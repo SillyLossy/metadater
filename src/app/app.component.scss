@@ -1,0 +1,51 @@
+:host {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.mat-toolbar {
+  height: auto;
+  min-height: 64px;
+}
+
+.mat-toolbar > * {
+  margin: 8px;
+}
+
+.mat-tab-group {
+  flex-grow: 1;
+}
+
+.chip-list {
+  width: 100%;
+}
+
+.chip-value {
+  overflow-x: hidden;
+  overflow-y: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.rdd-form {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.rdd-form > * {
+  margin: 0.3rem;
+  margin-left: 1.2rem;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: row;
+}
