@@ -16,10 +16,11 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 
-import { AppComponent, RDDDialog, RequirementDialog } from './app.component';
+import { AppComponent } from './app.component';
+import { DesignDialog, FeatureDialog, RDDDialog, RequirementDialog, UserStoryDialog } from './dialogs';
 
 @NgModule({
-  declarations: [AppComponent, RDDDialog, RequirementDialog],
+  declarations: [AppComponent, FeatureDialog, DesignDialog, RDDDialog, RequirementDialog, UserStoryDialog],
   imports: [
     BrowserModule,
     FormsModule,
@@ -39,7 +40,7 @@ import { AppComponent, RDDDialog, RequirementDialog } from './app.component';
     NgxDatatableModule
   ],
   providers: [],
-  entryComponents: [RDDDialog, RequirementDialog],
+  entryComponents: [FeatureDialog, DesignDialog, RDDDialog, RequirementDialog, UserStoryDialog],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

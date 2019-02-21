@@ -1,10 +1,12 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { Component, ElementRef, Inject, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatSnackBar } from '@angular/material';
+import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { MatDialog, MatSnackBar } from '@angular/material';
 import { TableColumn } from '@swimlane/ngx-datatable';
 import * as FileSaver from 'file-saver';
+import * as JsonFormatter from 'json-string-formatter';
 
-import { Feature, RDD, Requirement, Scenario, TestMetadata, UserStory } from './models';
+import { DesignDialog, FeatureDialog, RDDDialog, RequirementDialog, UserStoryDialog } from './dialogs';
+import { Design, Feature, RDD, Requirement, Scenario, TestMetadata, UserStory } from './models';
 
 @Component({
   selector: 'app-root',
@@ -17,8 +19,8 @@ export class AppComponent implements OnInit {
   @ViewChild('multiselectCellTemplate')
   private multiselectCellTemplate: TemplateRef<any>;
 
-  @ViewChild('requirementsActionCellTemplate')
-  private requirementsActionCellTemplate: TemplateRef<any>;
+  @ViewChild('actionCellTemplate')
+  private actionCellTemplate: TemplateRef<any>;
 
   @ViewChild('featureFileInput')
   private featureFileInput: ElementRef<HTMLInputElement>;
@@ -38,6 +40,13 @@ export class AppComponent implements OnInit {
     maxHeight: '75%'
   };
 
+  private readonly columnIds = {
+    Requirement: 'RequirementIds',
+    Feature: 'Features',
+    UserStory: 'UserStories',
+    Design: 'DesignIds'
+  };
+
   noMetadataTooltip = 'Load metadata first';
 
   separatorKeysCodes: number[] = [ENTER, COMMA];
@@ -51,6 +60,8 @@ export class AppComponent implements OnInit {
   userStoriesColumns: TableColumn[];
 
   requirementsColumns: TableColumn[];
+
+  designsColumns: TableColumn[];
 
   scenarios: Scenario[];
 
@@ -66,6 +77,10 @@ export class AppComponent implements OnInit {
 
   get RDDs(): RDD[] {
     return this.testMetadata ? this.testMetadata.RDDs : [];
+  }
+
+  get designs(): Design[] {
+    return this.testMetadata ? this.testMetadata.Designs : [];
   }
 
   get featureLoaded(): boolean {
@@ -120,16 +135,16 @@ export class AppComponent implements OnInit {
     let variants: string[];
 
     switch (prop) {
-      case 'RequirementIds':
+      case this.columnIds.Requirement:
         variants = this.testMetadata.Requirements.map(x => x.Id);
         break;
-      case 'DesignIds':
+      case this.columnIds.Design:
         variants = this.testMetadata.Designs.map(x => x.Design);
         break;
-      case 'UserStories':
+      case this.columnIds.UserStory:
         variants = this.testMetadata.UserStories.map(x => x.UserStory);
         break;
-      case 'Features':
+      case this.columnIds.Feature:
         variants = this.testMetadata.Features.map(x => x.Feature);
         break;
     }
@@ -208,7 +223,9 @@ export class AppComponent implements OnInit {
 
     const defaultFilename = 'TestMetadata.json';
     const filename = this.testMetadataFilename ? this.testMetadataFilename : defaultFilename;
-    const blob = new Blob([JSON.stringify(this.testMetadata)]);
+    const json = JSON.stringify(this.testMetadata);
+    const formatted = JsonFormatter.format(json);
+    const blob = new Blob([formatted]);
     FileSaver.saveAs(blob, filename);
   }
 
@@ -260,36 +277,132 @@ export class AppComponent implements OnInit {
     });
   }
 
-  editRequirement(requirement: Requirement): void {
+  editItem(columnId: string, item: any): void {
     const options = Object.assign({}, this.dialogOptions);
-    options.data = requirement;
+    options.data = item;
     const backup: any = Object.assign({}, options.data);
-    const dialogRef = this.dialog.open(RequirementDialog, options);
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (!result) {
-        requirement.Id = backup.Id;
-        requirement.Description = backup.Description;
-      }
-    });
-  }
-
-  removeRequirement(requirement: Requirement): void {
-    const index = this.selectedRDD.Requirements.indexOf(requirement);
-
-    if (index !== -1) {
-      this.selectedRDD.Requirements.splice(index, 1);
+    const replaceInTests = (prop: string, oldValue: string, newValue: string) => {
       for (const test of this.testMetadata.Tests) {
-        const reqIndex = test.RequirementIds.indexOf(requirement.Id);
-        if (reqIndex === -1) {
-          continue;
-        } else {
-          test.RequirementIds.splice(reqIndex, 1);
+        for (let i = 0; i < test[prop].length; i++) {
+          if (test[prop][i] === oldValue) {
+            test[prop][i] = newValue;
+          }
         }
       }
-    }
+    };
 
-    this.selectedRDD.Requirements = [...this.selectedRDD.Requirements];
+    const editRequirement = () => {
+      const requirement = item as Requirement;
+      const dialogRef = this.dialog.open(RequirementDialog, options);
+
+      dialogRef.afterClosed().subscribe((result: Requirement) => {
+        if (!result) {
+          requirement.Id = backup.Id;
+          requirement.Description = backup.Description;
+        } else {
+          replaceInTests('RequirementIds', backup.Id, result.Id);
+        }
+      });
+    };
+
+    const editUserStory = () => {
+      const userStory = item as UserStory;
+      const dialogRef = this.dialog.open(UserStoryDialog, options);
+
+      dialogRef.afterClosed().subscribe((result: UserStory) => {
+        if (!result) {
+          userStory.UserStory = backup.UserStory;
+          userStory.Location = backup.Location;
+        } else {
+          replaceInTests('UserStories', backup.UserStory, result.UserStory);
+        }
+      });
+    };
+
+    const editFeature = () => {
+      const feature = item as Feature;
+      const dialogRef = this.dialog.open(FeatureDialog, options);
+
+      dialogRef.afterClosed().subscribe((result: Feature) => {
+        if (!result) {
+          feature.Feature = backup.Feature;
+          feature.Location = backup.Location;
+        } else {
+          replaceInTests('Features', backup.Feature, result.Feature);
+        }
+      });
+    };
+
+    const editDesign = () => {
+      const design = item as Design;
+      const dialogRef = this.dialog.open(DesignDialog, options);
+
+      dialogRef.afterClosed().subscribe((result: Design) => {
+        if (!result) {
+          design.Design = backup.Design;
+          design.Location = backup.Location;
+        } else {
+          replaceInTests('DesignIds', backup.Design, result.Design);
+        }
+      });
+    };
+
+    switch (columnId) {
+      case this.columnIds.Requirement:
+        editRequirement();
+        break;
+      case this.columnIds.UserStory:
+        editUserStory();
+        break;
+      case this.columnIds.Feature:
+        editFeature();
+        break;
+      case this.columnIds.Design:
+        editDesign();
+        break;
+    }
+  }
+
+  removeItem(columnId: string, item: any): void {
+    const removeFromTests = (testProp: string, removeValue: string) => {
+      for (const test of this.testMetadata.Tests) {
+        const index = test[testProp].indexOf(removeValue);
+        if (index === -1) {
+          continue;
+        } else {
+          test[testProp].splice(index, 1);
+        }
+      }
+    };
+
+    const removeItem = (array: any[], testProp: string, itemProp: string) => {
+      const index = array.indexOf(item);
+
+      if (index !== -1) {
+        array.splice(index, 1);
+        removeFromTests(testProp, item[itemProp]);
+      }
+    };
+
+    switch (columnId) {
+      case this.columnIds.Requirement:
+        removeItem(this.selectedRDD.Requirements, 'RequirementIds', 'Id');
+        this.selectedRDD.Requirements = [...this.selectedRDD.Requirements];
+        break;
+      case this.columnIds.Design:
+        removeItem(this.testMetadata.Designs, 'DesignIds', 'Design');
+        this.testMetadata.Designs = [...this.testMetadata.Designs];
+        break;
+      case this.columnIds.UserStory:
+        removeItem(this.testMetadata.UserStories, 'UserStories', 'UserStory');
+        this.testMetadata.UserStories = [...this.testMetadata.UserStories];
+        break;
+      case this.columnIds.Feature:
+        removeItem(this.testMetadata.Features, 'Features', 'Feature');
+        this.testMetadata.Features = [...this.testMetadata.Features];
+        break;
+    }
   }
 
   ngOnInit(): void {
@@ -352,6 +465,12 @@ export class AppComponent implements OnInit {
         prop: 'Location',
         resizeable: false,
         flexGrow: 5
+      },
+      {
+        name: '\u00A0',
+        prop: this.columnIds.Feature,
+        cellTemplate: this.actionCellTemplate,
+        flexGrow: 1
       }
     ];
 
@@ -367,6 +486,12 @@ export class AppComponent implements OnInit {
         prop: 'Location',
         resizeable: false,
         flexGrow: 5
+      },
+      {
+        name: '\u00A0',
+        prop: this.columnIds.UserStory,
+        cellTemplate: this.actionCellTemplate,
+        flexGrow: 1
       }
     ];
 
@@ -385,44 +510,31 @@ export class AppComponent implements OnInit {
       },
       {
         name: '\u00A0',
-        prop: '',
-        cellTemplate: this.requirementsActionCellTemplate,
-        flexGrow: 0.75
+        prop: this.columnIds.Requirement,
+        cellTemplate: this.actionCellTemplate,
+        flexGrow: 1
       }
     ];
-  }
-}
 
-@Component({
-  selector: 'rdd-dialog',
-  templateUrl: 'rdd.dialog.html',
-  styleUrls: ['dialogs.scss']
-})
-export class RDDDialog {
-  constructor(public dialogRef: MatDialogRef<RDDDialog>, @Inject(MAT_DIALOG_DATA) public data: RDD) {}
-
-  onNoClick(): void {
-    this.dialogRef.close();
-  }
-
-  get valid(): boolean {
-    return !!this.data.Release && !!this.data.Location;
-  }
-}
-
-@Component({
-  selector: 'requirement-dialog',
-  templateUrl: 'requirement.dialog.html',
-  styleUrls: ['dialogs.scss']
-})
-export class RequirementDialog {
-  constructor(public dialogRef: MatDialogRef<RDDDialog>, @Inject(MAT_DIALOG_DATA) public data: Requirement) {}
-
-  onNoClick(): void {
-    this.dialogRef.close();
-  }
-
-  get valid(): boolean {
-    return !!this.data.Description && !!this.data.Id;
+    this.designsColumns = [
+      {
+        name: 'Id',
+        prop: 'Design',
+        resizeable: false,
+        flexGrow: 1
+      },
+      {
+        name: 'Location',
+        prop: 'Location',
+        resizeable: false,
+        flexGrow: 4
+      },
+      {
+        name: '\u00A0',
+        prop: this.columnIds.Design,
+        cellTemplate: this.actionCellTemplate,
+        flexGrow: 1
+      }
+    ];
   }
 }

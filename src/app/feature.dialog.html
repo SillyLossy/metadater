@@ -1,0 +1,14 @@
+<h1 mat-dialog-title>Feature details</h1>
+<div class="dialog-form" mat-dialog-content>
+  <mat-form-field>
+    <input placeholder="Id" matInput required [(ngModel)]="data.Feature" />
+  </mat-form-field>
+
+  <mat-form-field>
+    <input placeholder="Location" matInput required [(ngModel)]="data.Location" />
+  </mat-form-field>
+</div>
+<div mat-dialog-actions>
+  <button mat-button [disabled]="!valid" [mat-dialog-close]="data">Ok</button>
+  <button mat-button (click)="onNoClick()">Cancel</button>
+</div>
