@@ -1,12 +1,13 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { ComponentType } from '@angular/cdk/overlay';
 import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MatDialog, MatSnackBar } from '@angular/material';
 import { TableColumn } from '@swimlane/ngx-datatable';
 import * as FileSaver from 'file-saver';
 import * as JsonFormatter from 'json-string-formatter';
 
-import { DesignDialog, FeatureDialog, RDDDialog, RequirementDialog, UserStoryDialog } from './dialogs';
-import { Design, Feature, RDD, Requirement, Scenario, TestMetadata, UserStory } from './models';
+import { DesignDialog, FeatureDialog, RDDDialog, RequirementDialog, TestDialog, UserStoryDialog } from './dialogs';
+import { Design, Feature, RDD, Requirement, Scenario, Test, TestMetadata, UserStory } from './models';
 
 @Component({
   selector: 'app-root',
@@ -44,7 +45,16 @@ export class AppComponent implements OnInit {
     Requirement: 'RequirementIds',
     Feature: 'Features',
     UserStory: 'UserStories',
-    Design: 'DesignIds'
+    Design: 'DesignIds',
+    Test: 'Tests'
+  };
+
+  filters = {
+    Test: '',
+    Requirement: '',
+    UserStory: '',
+    Design: '',
+    Feature: ''
   };
 
   noMetadataTooltip = 'Load metadata first';
@@ -63,24 +73,60 @@ export class AppComponent implements OnInit {
 
   designsColumns: TableColumn[];
 
+  testsColumns: TableColumn[];
+
   scenarios: Scenario[];
 
   selectedRDD: RDD;
 
+  private applyFilter(array: any[], filter: string): any[] {
+    const matchValue = (value: string) => value.toUpperCase().includes(filter.toUpperCase());
+
+    return filter
+      ? array.filter(x => {
+          for (const key of Object.keys(x)) {
+            const value = x[key];
+            if (Array.isArray(value)) {
+              for (const item of value) {
+                if (matchValue(item)) {
+                  return true;
+                }
+              }
+            } else {
+              if (matchValue(value)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        })
+      : array;
+  }
+
   get features(): Feature[] {
-    return this.testMetadata ? this.testMetadata.Features : [];
+    return this.testMetadata ? this.applyFilter(this.testMetadata.Features, this.filters.Feature) : [];
   }
 
   get userStories(): UserStory[] {
-    return this.testMetadata ? this.testMetadata.UserStories : [];
+    return this.testMetadata ? this.applyFilter(this.testMetadata.UserStories, this.filters.UserStory) : [];
+  }
+
+  get designs(): Design[] {
+    return this.testMetadata ? this.applyFilter(this.testMetadata.Designs, this.filters.Design) : [];
+  }
+
+  get tests(): Test[] {
+    return this.testMetadata ? this.applyFilter(this.testMetadata.Tests, this.filters.Test) : [];
+  }
+
+  get requirements(): Requirement[] {
+    return this.selectedRDD.Requirements
+      ? this.applyFilter(this.selectedRDD.Requirements, this.filters.Requirement)
+      : [];
   }
 
   get RDDs(): RDD[] {
     return this.testMetadata ? this.testMetadata.RDDs : [];
-  }
-
-  get designs(): Design[] {
-    return this.testMetadata ? this.testMetadata.Designs : [];
   }
 
   get featureLoaded(): boolean {
@@ -174,6 +220,7 @@ export class AppComponent implements OnInit {
       this.featureFileFilename = featureFile.name;
       const text = await new Response(featureFile).text();
       this.scenarios = this.parseFeatureFile(text);
+      this.featureFileInput.nativeElement.value = null;
     }
   }
 
@@ -182,6 +229,7 @@ export class AppComponent implements OnInit {
     this.testMetadataFilename = metadataFile.name;
     const text = await new Response(metadataFile).text();
     this.testMetadata = Object.assign(new TestMetadata(), JSON.parse(text));
+    this.metadataFileInput.nativeElement.value = null;
   }
 
   parseFeatureFile(content: string): Scenario[] {
@@ -207,7 +255,7 @@ export class AppComponent implements OnInit {
         .shift()
         .replace(scenarioTag, '')
         .trim();
-      scenarios.push({ id: id, name: name } as Scenario);
+      scenarios.push({ Id: id, Name: name } as Scenario);
     }
 
     return scenarios;
@@ -266,17 +314,50 @@ export class AppComponent implements OnInit {
     this.selectedRDD = null;
   }
 
-  addNewRequirement(): void {
+  addItem(columnId: string): void {
     const options = Object.assign({}, this.dialogOptions);
-    options.data = new Requirement();
-    const dialogRef = this.dialog.open(RequirementDialog, options);
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.selectedRDD.Requirements.unshift(result);
-        this.selectedRDD.Requirements = [...this.selectedRDD.Requirements];
-      }
-    });
+    const addRequirement = () => {
+      options.data = new Requirement();
+      const dialogRef = this.dialog.open(RequirementDialog, options);
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.selectedRDD.Requirements.unshift(result);
+          this.selectedRDD.Requirements = [...this.selectedRDD.Requirements];
+        }
+      });
+    };
+
+    const genericAdd = (data: any, dialogClass: ComponentType<{}>, arrayProp: string) => {
+      options.data = data;
+      const dialogRef = this.dialog.open(dialogClass, options);
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.testMetadata[arrayProp].unshift(result);
+          this.testMetadata[arrayProp] = [...this.testMetadata[arrayProp]];
+        }
+      });
+    };
+
+    switch (columnId) {
+      case this.columnIds.Requirement:
+        addRequirement();
+        break;
+      case this.columnIds.Design:
+        genericAdd(new Design(), DesignDialog, 'Designs');
+        break;
+      case this.columnIds.Test:
+        genericAdd(new Test(''), TestDialog, 'Tests');
+        break;
+      case this.columnIds.Feature:
+        genericAdd(new Feature(), FeatureDialog, 'Features');
+        break;
+      case this.columnIds.UserStory:
+        genericAdd(new UserStory(), UserStoryDialog, 'UserStories');
+        break;
+    }
   }
 
   editItem(columnId: string, item: any): void {
@@ -294,74 +375,37 @@ export class AppComponent implements OnInit {
       }
     };
 
-    const editRequirement = () => {
-      const requirement = item as Requirement;
-      const dialogRef = this.dialog.open(RequirementDialog, options);
+    const genericEdit = (dialogClass: ComponentType<{}>, displayProp?: string) => {
+      const dialogRef = this.dialog.open(dialogClass, options);
 
-      dialogRef.afterClosed().subscribe((result: Requirement) => {
-        if (!result) {
-          requirement.Id = backup.Id;
-          requirement.Description = backup.Description;
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          if (displayProp) {
+            replaceInTests(this.columnIds[columnId], backup[displayProp], result[displayProp]);
+          }
         } else {
-          replaceInTests('RequirementIds', backup.Id, result.Id);
-        }
-      });
-    };
-
-    const editUserStory = () => {
-      const userStory = item as UserStory;
-      const dialogRef = this.dialog.open(UserStoryDialog, options);
-
-      dialogRef.afterClosed().subscribe((result: UserStory) => {
-        if (!result) {
-          userStory.UserStory = backup.UserStory;
-          userStory.Location = backup.Location;
-        } else {
-          replaceInTests('UserStories', backup.UserStory, result.UserStory);
-        }
-      });
-    };
-
-    const editFeature = () => {
-      const feature = item as Feature;
-      const dialogRef = this.dialog.open(FeatureDialog, options);
-
-      dialogRef.afterClosed().subscribe((result: Feature) => {
-        if (!result) {
-          feature.Feature = backup.Feature;
-          feature.Location = backup.Location;
-        } else {
-          replaceInTests('Features', backup.Feature, result.Feature);
-        }
-      });
-    };
-
-    const editDesign = () => {
-      const design = item as Design;
-      const dialogRef = this.dialog.open(DesignDialog, options);
-
-      dialogRef.afterClosed().subscribe((result: Design) => {
-        if (!result) {
-          design.Design = backup.Design;
-          design.Location = backup.Location;
-        } else {
-          replaceInTests('DesignIds', backup.Design, result.Design);
+          for (const key of Object.keys(item)) {
+            item[key] = backup[key];
+          }
         }
       });
     };
 
     switch (columnId) {
       case this.columnIds.Requirement:
-        editRequirement();
+        genericEdit(RequirementDialog, 'Id');
         break;
       case this.columnIds.UserStory:
-        editUserStory();
+        genericEdit(UserStoryDialog, 'UserStory');
         break;
       case this.columnIds.Feature:
-        editFeature();
+        genericEdit(FeatureDialog, 'Feature');
         break;
       case this.columnIds.Design:
-        editDesign();
+        genericEdit(DesignDialog, 'Design');
+        break;
+      case this.columnIds.Test:
+        genericEdit(TestDialog);
         break;
     }
   }
@@ -378,12 +422,14 @@ export class AppComponent implements OnInit {
       }
     };
 
-    const removeItem = (array: any[], testProp: string, itemProp: string) => {
+    const removeItem = (array: any[], testProp?: string, itemProp?: string) => {
       const index = array.indexOf(item);
 
       if (index !== -1) {
         array.splice(index, 1);
-        removeFromTests(testProp, item[itemProp]);
+        if (testProp && itemProp) {
+          removeFromTests(testProp, item[itemProp]);
+        }
       }
     };
 
@@ -404,6 +450,9 @@ export class AppComponent implements OnInit {
         removeItem(this.testMetadata.Features, 'Features', 'Feature');
         this.testMetadata.Features = [...this.testMetadata.Features];
         break;
+      case this.columnIds.Test:
+        removeItem(this.testMetadata.Tests);
+        this.testMetadata.Tests = [...this.testMetadata.Tests];
     }
   }
 
@@ -411,13 +460,13 @@ export class AppComponent implements OnInit {
     this.scenariosColumns = [
       {
         name: 'Test Id',
-        prop: 'id',
+        prop: 'Id',
         resizeable: false,
         flexGrow: 0.5
       },
       {
         name: 'Scenario Name',
-        prop: 'name',
+        prop: 'Name',
         resizeable: false,
         flexGrow: 1.5
       },
@@ -451,6 +500,59 @@ export class AppComponent implements OnInit {
         cellTemplate: this.multiselectCellTemplate,
         resizeable: false,
         sortable: false,
+        flexGrow: 1
+      }
+    ];
+
+    this.testsColumns = [
+      {
+        name: 'Id',
+        prop: 'Id',
+        resizeable: false,
+        flexGrow: 1
+      },
+      {
+        name: 'Requirements',
+        prop: 'RequirementIds',
+        cellTemplate: this.multiselectCellTemplate,
+        resizeable: false,
+        sortable: false,
+        flexGrow: 2
+      },
+      {
+        name: 'Designs',
+        prop: 'DesignIds',
+        cellTemplate: this.multiselectCellTemplate,
+        resizeable: false,
+        sortable: false,
+        flexGrow: 2
+      },
+      {
+        name: 'User Stories',
+        prop: 'UserStories',
+        cellTemplate: this.multiselectCellTemplate,
+        resizeable: false,
+        sortable: false,
+        flexGrow: 2
+      },
+      {
+        name: 'Features',
+        prop: 'Features',
+        cellTemplate: this.multiselectCellTemplate,
+        resizeable: false,
+        sortable: false,
+        flexGrow: 2
+      },
+      {
+        name: 'Release',
+        prop: 'Release',
+        resizeable: false,
+        flexGrow: 0.75
+      },
+      {
+        name: '\u00A0',
+        prop: this.columnIds.Test,
+        cellTemplate: this.actionCellTemplate,
         flexGrow: 1
       }
     ];

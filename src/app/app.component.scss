@@ -10,12 +10,12 @@ h1 {
   user-select: none;
 }
 
-.mat-toolbar {
+.header-toolbar {
   height: auto;
   min-height: 64px;
 }
 
-.mat-toolbar > * {
+.header-toolbar > * {
   margin: 8px;
 }
 
@@ -27,20 +27,25 @@ h1 {
   width: 100%;
 }
 
+ngx-datatable {
+  overflow: hidden;
+  flex-grow: 1;
+}
+
 .chip-value {
-  overflow-x: hidden;
-  overflow-y: hidden;
+  overflow: hidden;
   text-overflow: ellipsis;
   max-width: 200px;
 }
 
-.rdd-form {
+.toolbar-flex {
   display: flex;
   flex-direction: row;
   align-items: center;
+  flex-shrink: 0;
 }
 
-.rdd-form > * {
+.toolbar-flex > * {
   margin: 0.3rem;
   margin-left: 1.2rem;
 }

@@ -1,6 +1,6 @@
 export class Scenario {
-  id: string;
-  name: string;
+  Id: string;
+  Name: string;
 }
 
 export class TestMetadata {

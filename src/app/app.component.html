@@ -1,4 +1,4 @@
-<mat-toolbar color="primary">
+<mat-toolbar class="header-toolbar" color="primary">
   <h1>
     Metadater
     <mat-icon>accessible_forward</mat-icon>
@@ -22,6 +22,34 @@
         [columns]="scenariosColumns"
         [rows]="scenarios"
         [columnMode]="'flex'"
+        [limit]="10"
+        [footerHeight]="'auto'"
+        [headerHeight]="'auto'"
+        [rowHeight]="'auto'"
+      ></ngx-datatable>
+    </ng-template>
+  </mat-tab>
+
+  <mat-tab label="Tests">
+    <ng-template matTabContent>
+      <div class="toolbar-flex tab-toolbar">
+        <button [disabled]="!testMetadata" mat-mini-fab matTooltip="Add new test" (click)="addItem(columnIds.Test)">
+          <mat-icon>note_add</mat-icon>
+        </button>
+
+        <mat-form-field>
+          <input placeholder="Filter" matInput [(ngModel)]="filters.Test" />
+        </mat-form-field>
+      </div>
+
+      <ngx-datatable
+        class="material"
+        [columns]="testsColumns"
+        [rows]="tests"
+        [columnMode]="'flex'"
+        [limit]="10"
+        [footerHeight]="'auto'"
+        [headerHeight]="'auto'"
         [rowHeight]="'auto'"
       ></ngx-datatable>
     </ng-template>
@@ -29,7 +57,7 @@
 
   <mat-tab label="RDDs">
     <ng-template matTabContent>
-      <div class="rdd-form">
+      <div class="toolbar-flex rdd-toolbar">
         <button [disabled]="!testMetadata" mat-mini-fab color="primary" matTooltip="Add new RDD" (click)="addNewRDD()">
           <mat-icon>add</mat-icon>
         </button>
@@ -40,7 +68,7 @@
           [disabled]="!selectedRDD"
           mat-mini-fab
           matTooltip="Add new requirment to selected RDD"
-          (click)="addNewRequirement()"
+          (click)="addItem(columnIds.Requirement)"
         >
           <mat-icon>note_add</mat-icon>
         </button>
@@ -58,13 +86,19 @@
             <mat-option *ngFor="let rdd of RDDs" [value]="rdd">{{ rdd.Release }}</mat-option>
           </mat-select>
         </mat-form-field>
+        <mat-form-field *ngIf="selectedRDD">
+          <input placeholder="Filter" matInput [(ngModel)]="filters.Requirement" />
+        </mat-form-field>
       </div>
       <ngx-datatable
         *ngIf="selectedRDD"
         class="material"
         [columns]="requirementsColumns"
-        [rows]="selectedRDD.Requirements"
+        [rows]="requirements"
         [columnMode]="'flex'"
+        [limit]="10"
+        [footerHeight]="'auto'"
+        [headerHeight]="'auto'"
         [rowHeight]="'auto'"
         (select)="editRequirement($event)"
       ></ngx-datatable>
@@ -73,11 +107,23 @@
 
   <mat-tab label="Designs">
     <ng-template matTabContent>
+      <div class="toolbar-flex tab-toolbar">
+        <button [disabled]="!testMetadata" mat-mini-fab matTooltip="Add new Design" (click)="addItem(columnIds.Design)">
+          <mat-icon>note_add</mat-icon>
+        </button>
+
+        <mat-form-field>
+          <input placeholder="Filter" matInput [(ngModel)]="filters.Design" />
+        </mat-form-field>
+      </div>
       <ngx-datatable
         class="material"
         [columns]="designsColumns"
         [rows]="designs"
         [columnMode]="'flex'"
+        [limit]="10"
+        [footerHeight]="'auto'"
+        [headerHeight]="'auto'"
         [rowHeight]="'auto'"
       ></ngx-datatable>
     </ng-template>
@@ -85,11 +131,28 @@
 
   <mat-tab label="User Stories">
     <ng-template matTabContent>
+      <div class="toolbar-flex tab-toolbar">
+        <button
+          [disabled]="!testMetadata"
+          mat-mini-fab
+          matTooltip="Add new User Story"
+          (click)="addItem(columnIds.UserStory)"
+        >
+          <mat-icon>note_add</mat-icon>
+        </button>
+
+        <mat-form-field>
+          <input placeholder="Filter" matInput [(ngModel)]="filters.UserStory" />
+        </mat-form-field>
+      </div>
       <ngx-datatable
         class="material"
         [columns]="userStoriesColumns"
         [rows]="userStories"
         [columnMode]="'flex'"
+        [limit]="10"
+        [footerHeight]="'auto'"
+        [headerHeight]="'auto'"
         [rowHeight]="'auto'"
       ></ngx-datatable>
     </ng-template>
@@ -97,11 +160,28 @@
 
   <mat-tab label="Features">
     <ng-template matTabContent>
+      <div class="toolbar-flex tab-toolbar">
+        <button
+          [disabled]="!testMetadata"
+          mat-mini-fab
+          matTooltip="Add new Feature"
+          (click)="addItem(columnIds.Feature)"
+        >
+          <mat-icon>note_add</mat-icon>
+        </button>
+
+        <mat-form-field>
+          <input placeholder="Filter" matInput [(ngModel)]="filters.Feature" />
+        </mat-form-field>
+      </div>
       <ngx-datatable
         class="material"
         [columns]="featuresColumns"
         [rows]="features"
         [columnMode]="'flex'"
+        [limit]="10"
+        [footerHeight]="'auto'"
+        [headerHeight]="'auto'"
         [rowHeight]="'auto'"
       ></ngx-datatable>
     </ng-template>
@@ -123,10 +203,10 @@
   <mat-form-field class="chip-list" *ngIf="testMetadata">
     <mat-chip-list #chipList>
       <mat-chip
-        *ngFor="let value of getValues(row.id, column.prop)"
+        *ngFor="let value of getValues(row.Id, column.prop)"
         [selectable]="'false'"
         [removable]="'true'"
-        (removed)="removeValue(row.id, column.prop, value)"
+        (removed)="removeValue(row.Id, column.prop, value)"
       >
         <span title="{{ value }}" class="chip-value">{{ value }}</span>
         <mat-icon matChipRemove>cancel</mat-icon>
@@ -137,11 +217,11 @@
         [matChipInputFor]="chipList"
         [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
         [matChipInputAddOnBlur]="'true'"
-        (matChipInputTokenEnd)="addValue(row.id, column.prop, $event, input)"
+        (matChipInputTokenEnd)="addValue(row.Id, column.prop, $event, input)"
       />
     </mat-chip-list>
-    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addValue(row.id, column.prop, $event, input)">
-      <mat-option *ngFor="let option of getOptions(row.id, column.prop, input.value)" [value]="option">
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addValue(row.Id, column.prop, $event, input)">
+      <mat-option *ngFor="let option of getOptions(row.Id, column.prop, input.value)" [value]="option">
         {{ option }}
       </mat-option>
     </mat-autocomplete>

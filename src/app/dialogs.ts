@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
 
-import { Design, Feature, RDD, Requirement, UserStory } from './models';
+import { Design, Feature, RDD, Requirement, Test, UserStory } from './models';
 
 @Component({
   selector: 'rdd-dialog',
@@ -85,5 +85,22 @@ export class DesignDialog {
 
   get valid(): boolean {
     return !!this.data.Location && !!this.data.Design;
+  }
+}
+
+@Component({
+  selector: 'test-dialog',
+  templateUrl: 'test.dialog.html',
+  styleUrls: ['dialogs.scss']
+})
+export class TestDialog {
+  constructor(public dialogRef: MatDialogRef<RDDDialog>, @Inject(MAT_DIALOG_DATA) public data: Test) {}
+
+  onNoClick(): void {
+    this.dialogRef.close();
+  }
+
+  get valid(): boolean {
+    return !!this.data.Id && !!this.data.Release;
   }
 }
