@@ -170,9 +170,11 @@ export class AppComponent implements OnInit {
 
   async loadFeatureFile(): Promise<void> {
     const featureFile = this.featureFileInput.nativeElement.files.item(0);
-    this.featureFileFilename = featureFile.name;
-    const text = await new Response(featureFile).text();
-    this.scenarios = this.parseFeatureFile(text);
+    if (featureFile && featureFile.name) {
+      this.featureFileFilename = featureFile.name;
+      const text = await new Response(featureFile).text();
+      this.scenarios = this.parseFeatureFile(text);
+    }
   }
 
   async loadMetadata(): Promise<void> {
@@ -187,8 +189,8 @@ export class AppComponent implements OnInit {
     const idTag = '@Id_';
     const scenarioTag = 'Scenario:';
     const lines = content
-      .split('\r\n')
-      .map(x => x.trim())
+      .split('\n')
+      .map(x => x.trim().replace('\r', ''))
       .filter(x => x.startsWith(idTag) || x.startsWith(scenarioTag));
 
     if (lines.length % 2 != 0) {
