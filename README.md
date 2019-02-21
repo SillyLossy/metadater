@@ -1,5 +1,3 @@
-# Metadater
-
 Click here to run:
 
-[Metadater](/dist/index.html)
+[Metadater](metadater/dist/metadater/index.html)
