@@ -16,85 +16,95 @@
 </mat-toolbar>
 <mat-tab-group>
   <mat-tab label="Scenarios">
-    <ngx-datatable
-      class="material"
-      [columns]="scenariosColumns"
-      [rows]="scenarios"
-      [columnMode]="'flex'"
-      [rowHeight]="'auto'"
-    ></ngx-datatable>
+    <ng-template matTabContent>
+      <ngx-datatable
+        class="material"
+        [columns]="scenariosColumns"
+        [rows]="scenarios"
+        [columnMode]="'flex'"
+        [rowHeight]="'auto'"
+      ></ngx-datatable>
+    </ng-template>
   </mat-tab>
 
   <mat-tab label="RDDs">
-    <div class="rdd-form">
-      <button [disabled]="!testMetadata" mat-mini-fab color="primary" matTooltip="Add new RDD" (click)="addNewRDD()">
-        <mat-icon>add</mat-icon>
-      </button>
-      <button [disabled]="!selectedRDD" mat-mini-fab matTooltip="Edit selected RDD" (click)="editRDD()">
-        <mat-icon>edit</mat-icon>
-      </button>
-      <button
-        [disabled]="!selectedRDD"
-        mat-mini-fab
-        matTooltip="Add new requirment to selected RDD"
-        (click)="addNewRequirement()"
-      >
-        <mat-icon>note_add</mat-icon>
-      </button>
-      <button
-        [disabled]="!selectedRDD"
-        mat-mini-fab
-        color="warn"
-        matTooltip="Remove selected RDD"
-        (click)="removeRDD()"
-      >
-        <mat-icon>remove</mat-icon>
-      </button>
-      <mat-form-field [floatLabel]="'true'">
-        <mat-select placeholder="Release" [(ngModel)]="selectedRDD">
-          <mat-option *ngFor="let rdd of RDDs" [value]="rdd">{{ rdd.Release }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-    <ngx-datatable
-      *ngIf="selectedRDD"
-      class="material"
-      [columns]="requirementsColumns"
-      [rows]="selectedRDD.Requirements"
-      [columnMode]="'flex'"
-      [rowHeight]="'auto'"
-      (select)="editRequirement($event)"
-    ></ngx-datatable>
+    <ng-template matTabContent>
+      <div class="rdd-form">
+        <button [disabled]="!testMetadata" mat-mini-fab color="primary" matTooltip="Add new RDD" (click)="addNewRDD()">
+          <mat-icon>add</mat-icon>
+        </button>
+        <button [disabled]="!selectedRDD" mat-mini-fab matTooltip="Edit selected RDD" (click)="editRDD()">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button
+          [disabled]="!selectedRDD"
+          mat-mini-fab
+          matTooltip="Add new requirment to selected RDD"
+          (click)="addNewRequirement()"
+        >
+          <mat-icon>note_add</mat-icon>
+        </button>
+        <button
+          [disabled]="!selectedRDD"
+          mat-mini-fab
+          color="warn"
+          matTooltip="Remove selected RDD"
+          (click)="removeRDD()"
+        >
+          <mat-icon>remove</mat-icon>
+        </button>
+        <mat-form-field [floatLabel]="'true'">
+          <mat-select placeholder="Release" [(ngModel)]="selectedRDD">
+            <mat-option *ngFor="let rdd of RDDs" [value]="rdd">{{ rdd.Release }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <ngx-datatable
+        *ngIf="selectedRDD"
+        class="material"
+        [columns]="requirementsColumns"
+        [rows]="selectedRDD.Requirements"
+        [columnMode]="'flex'"
+        [rowHeight]="'auto'"
+        (select)="editRequirement($event)"
+      ></ngx-datatable>
+    </ng-template>
   </mat-tab>
 
   <mat-tab label="Designs">
-    <ngx-datatable
-      class="material"
-      [columns]="designsColumns"
-      [rows]="designs"
-      [columnMode]="'flex'"
-      [rowHeight]="'auto'"
-    ></ngx-datatable>
+    <ng-template matTabContent>
+      <ngx-datatable
+        class="material"
+        [columns]="designsColumns"
+        [rows]="designs"
+        [columnMode]="'flex'"
+        [rowHeight]="'auto'"
+      ></ngx-datatable>
+    </ng-template>
   </mat-tab>
 
   <mat-tab label="User Stories">
-    <ngx-datatable
-      class="material"
-      [columns]="userStoriesColumns"
-      [rows]="userStories"
-      [columnMode]="'flex'"
-      [rowHeight]="'auto'"
-    ></ngx-datatable>
+    <ng-template matTabContent>
+      <ngx-datatable
+        class="material"
+        [columns]="userStoriesColumns"
+        [rows]="userStories"
+        [columnMode]="'flex'"
+        [rowHeight]="'auto'"
+      ></ngx-datatable>
+    </ng-template>
   </mat-tab>
 
   <mat-tab label="Features">
-    <ngx-datatable
-      class="material"
-      [columns]="featuresColumns"
-      [rows]="features"
-      [columnMode]="'flex'"
-      [rowHeight]="'auto'"
-    ></ngx-datatable>
+    <ng-template matTabContent>
+      <ngx-datatable
+        class="material"
+        [columns]="featuresColumns"
+        [rows]="features"
+        [columnMode]="'flex'"
+        [rowHeight]="'auto'"
+      ></ngx-datatable>
+    </ng-template>
   </mat-tab>
 </mat-tab-group>
 
