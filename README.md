@@ -1,3 +1,3 @@
 Click here to run:
 
-[Metadater](metadater/dist/metadater/index.html)
+[Metadater](https://sillylossy.github.io/metadater/dist/metadater/index.html)
