@@ -1,8 +1,8 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { ComponentType } from '@angular/cdk/overlay';
-import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, QueryList, TemplateRef, ViewChild, ViewChildren } from '@angular/core';
 import { MatDialog, MatSnackBar } from '@angular/material';
-import { TableColumn } from '@swimlane/ngx-datatable';
+import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import * as FileSaver from 'file-saver';
 import * as JsonFormatter from 'json-string-formatter';
 
@@ -32,6 +32,9 @@ export class AppComponent implements OnInit {
   @ViewChild('metadataFileInput')
   private metadataFileInput: ElementRef<HTMLInputElement>;
 
+  @ViewChildren(DatatableComponent)
+  private datatables: QueryList<DatatableComponent>;
+
   private testMetadataFilename: string;
 
   private featureFileFilename: string;
@@ -59,6 +62,10 @@ export class AppComponent implements OnInit {
     Design: '',
     Feature: ''
   };
+
+  changeColumnMode(): void {
+    this.datatables.forEach(table => (table.columnMode = ColumnMode.force));
+  }
 
   noMetadataTooltip = 'Load metadata first';
 

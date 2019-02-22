@@ -29,6 +29,10 @@ body {
   flex-direction: column;
 }
 
+.mat-option-text {
+  font-size: 14px;
+}
+
 .ngx-datatable .datatable-body {
   flex-grow: 1;
   overflow-y: auto;

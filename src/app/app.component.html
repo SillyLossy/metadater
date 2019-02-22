@@ -14,7 +14,7 @@
     <mat-chip selected color="{{ testMetadata ? '' : 'warn' }}">Metadata: {{ metadataStatus }}</mat-chip>
   </mat-chip-list>
 </mat-toolbar>
-<mat-tab-group>
+<mat-tab-group (animationDone)="changeColumnMode()">
   <mat-tab label="Scenarios">
     <ng-template matTabContent>
       <ngx-datatable
