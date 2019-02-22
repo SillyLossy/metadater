@@ -24,7 +24,7 @@
         [columnMode]="'flex'"
         [limit]="10"
         [footerHeight]="'auto'"
-        [headerHeight]="'auto'"
+        [headerHeight]="35"
         [rowHeight]="'auto'"
       ></ngx-datatable>
     </ng-template>
@@ -49,7 +49,7 @@
         [columnMode]="'flex'"
         [limit]="10"
         [footerHeight]="'auto'"
-        [headerHeight]="'auto'"
+        [headerHeight]="35"
         [rowHeight]="'auto'"
       ></ngx-datatable>
     </ng-template>
@@ -98,7 +98,7 @@
         [columnMode]="'flex'"
         [limit]="10"
         [footerHeight]="'auto'"
-        [headerHeight]="'auto'"
+        [headerHeight]="35"
         [rowHeight]="'auto'"
         (select)="editRequirement($event)"
       ></ngx-datatable>
@@ -123,7 +123,7 @@
         [columnMode]="'flex'"
         [limit]="10"
         [footerHeight]="'auto'"
-        [headerHeight]="'auto'"
+        [headerHeight]="35"
         [rowHeight]="'auto'"
       ></ngx-datatable>
     </ng-template>
@@ -152,7 +152,7 @@
         [columnMode]="'flex'"
         [limit]="10"
         [footerHeight]="'auto'"
-        [headerHeight]="'auto'"
+        [headerHeight]="35"
         [rowHeight]="'auto'"
       ></ngx-datatable>
     </ng-template>
@@ -181,7 +181,7 @@
         [columnMode]="'flex'"
         [limit]="10"
         [footerHeight]="'auto'"
-        [headerHeight]="'auto'"
+        [headerHeight]="35"
         [rowHeight]="'auto'"
       ></ngx-datatable>
     </ng-template>
@@ -197,6 +197,10 @@
       <mat-icon>edit</mat-icon>
     </button>
   </div>
+</ng-template>
+
+<ng-template #usedInTestsCellTemplate let-row="row" let-column="column">
+  <span>{{ getUsageInTests(column.prop, row) }} tests</span>
 </ng-template>
 
 <ng-template #multiselectCellTemplate let-row="row" let-column="column">

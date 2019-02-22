@@ -1,14 +1,14 @@
 <h1 mat-dialog-title>Test details</h1>
 <div class="dialog-form" mat-dialog-content>
   <mat-form-field>
-    <input placeholder="Id" matInput required [(ngModel)]="data.Id" />
+    <input tabindex="1" placeholder="Id" matInput required [(ngModel)]="data.Id" />
   </mat-form-field>
 
   <mat-form-field>
-    <input placeholder="Release" matInput required [(ngModel)]="data.Release" />
+    <input tabindex="2" placeholder="Release" matInput required [(ngModel)]="data.Release" />
   </mat-form-field>
 </div>
 <div mat-dialog-actions>
-  <button tabindex="1" mat-button [disabled]="!valid" [mat-dialog-close]="data">Ok</button>
-  <button tabindex="2" mat-button (click)="onNoClick()">Cancel</button>
+  <button cdkFocusInitial tabindex="3" mat-button [disabled]="!valid" [mat-dialog-close]="data">Ok</button>
+  <button tabindex="4" mat-button (click)="onNoClick()">Cancel</button>
 </div>

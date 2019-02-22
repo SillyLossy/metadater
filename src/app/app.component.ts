@@ -23,6 +23,9 @@ export class AppComponent implements OnInit {
   @ViewChild('actionCellTemplate')
   private actionCellTemplate: TemplateRef<any>;
 
+  @ViewChild('usedInTestsCellTemplate')
+  private usedInTestsCellTemplate: TemplateRef<any>;
+
   @ViewChild('featureFileInput')
   private featureFileInput: ElementRef<HTMLInputElement>;
 
@@ -453,7 +456,36 @@ export class AppComponent implements OnInit {
       case this.columnIds.Test:
         removeItem(this.testMetadata.Tests);
         this.testMetadata.Tests = [...this.testMetadata.Tests];
+        break;
     }
+  }
+
+  getUsageInTests(columnId: string, item: any): number {
+    let value: string;
+    let number = 0;
+
+    switch (columnId) {
+      case this.columnIds.Requirement:
+        value = item.Id;
+        break;
+      case this.columnIds.Design:
+        value = item.Design;
+        break;
+      case this.columnIds.UserStory:
+        value = item.UserStory;
+        break;
+      case this.columnIds.Feature:
+        value = item.Feature;
+        break;
+    }
+
+    for (const test of this.testMetadata.Tests) {
+      if (test[columnId].includes(value)) {
+        ++number;
+      }
+    }
+
+    return number;
   }
 
   ngOnInit(): void {
@@ -461,20 +493,17 @@ export class AppComponent implements OnInit {
       {
         name: 'Test Id',
         prop: 'Id',
-        resizeable: false,
         flexGrow: 0.5
       },
       {
         name: 'Scenario Name',
         prop: 'Name',
-        resizeable: false,
         flexGrow: 1.5
       },
       {
         name: 'Requirements',
         prop: 'RequirementIds',
         cellTemplate: this.multiselectCellTemplate,
-        resizeable: false,
         sortable: false,
         flexGrow: 1
       },
@@ -482,7 +511,6 @@ export class AppComponent implements OnInit {
         name: 'Designs',
         prop: 'DesignIds',
         cellTemplate: this.multiselectCellTemplate,
-        resizeable: false,
         sortable: false,
         flexGrow: 1
       },
@@ -490,7 +518,6 @@ export class AppComponent implements OnInit {
         name: 'User Stories',
         prop: 'UserStories',
         cellTemplate: this.multiselectCellTemplate,
-        resizeable: false,
         sortable: false,
         flexGrow: 1
       },
@@ -498,7 +525,6 @@ export class AppComponent implements OnInit {
         name: 'Features',
         prop: 'Features',
         cellTemplate: this.multiselectCellTemplate,
-        resizeable: false,
         sortable: false,
         flexGrow: 1
       }
@@ -508,14 +534,12 @@ export class AppComponent implements OnInit {
       {
         name: 'Id',
         prop: 'Id',
-        resizeable: false,
         flexGrow: 1
       },
       {
         name: 'Requirements',
         prop: 'RequirementIds',
         cellTemplate: this.multiselectCellTemplate,
-        resizeable: false,
         sortable: false,
         flexGrow: 2
       },
@@ -523,7 +547,6 @@ export class AppComponent implements OnInit {
         name: 'Designs',
         prop: 'DesignIds',
         cellTemplate: this.multiselectCellTemplate,
-        resizeable: false,
         sortable: false,
         flexGrow: 2
       },
@@ -531,7 +554,6 @@ export class AppComponent implements OnInit {
         name: 'User Stories',
         prop: 'UserStories',
         cellTemplate: this.multiselectCellTemplate,
-        resizeable: false,
         sortable: false,
         flexGrow: 2
       },
@@ -539,14 +561,12 @@ export class AppComponent implements OnInit {
         name: 'Features',
         prop: 'Features',
         cellTemplate: this.multiselectCellTemplate,
-        resizeable: false,
         sortable: false,
         flexGrow: 2
       },
       {
         name: 'Release',
         prop: 'Release',
-        resizeable: false,
         flexGrow: 0.75
       },
       {
@@ -561,19 +581,26 @@ export class AppComponent implements OnInit {
       {
         name: 'Id',
         prop: 'Feature',
-        resizeable: false,
         flexGrow: 1
       },
       {
         name: 'Location',
         prop: 'Location',
-        resizeable: false,
         flexGrow: 5
+      },
+      {
+        name: 'Used in tests',
+        prop: this.columnIds.Feature,
+        cellTemplate: this.usedInTestsCellTemplate,
+        sortable: false,
+        flexGrow: 1
       },
       {
         name: '\u00A0',
         prop: this.columnIds.Feature,
         cellTemplate: this.actionCellTemplate,
+        resizeable: false,
+        sortable: false,
         flexGrow: 1
       }
     ];
@@ -582,19 +609,26 @@ export class AppComponent implements OnInit {
       {
         name: 'Id',
         prop: 'UserStory',
-        resizeable: false,
         flexGrow: 1
       },
       {
         name: 'Location',
         prop: 'Location',
-        resizeable: false,
-        flexGrow: 5
+        flexGrow: 4
+      },
+      {
+        name: 'Used in tests',
+        prop: this.columnIds.UserStory,
+        cellTemplate: this.usedInTestsCellTemplate,
+        sortable: false,
+        flexGrow: 1
       },
       {
         name: '\u00A0',
         prop: this.columnIds.UserStory,
         cellTemplate: this.actionCellTemplate,
+        sortable: false,
+        resizeable: false,
         flexGrow: 1
       }
     ];
@@ -603,19 +637,26 @@ export class AppComponent implements OnInit {
       {
         name: 'Id',
         prop: 'Id',
-        resizeable: false,
         flexGrow: 1
       },
       {
         name: 'Description',
         prop: 'Description',
-        resizeable: false,
         flexGrow: 4
+      },
+      {
+        name: 'Used in tests',
+        prop: this.columnIds.Requirement,
+        cellTemplate: this.usedInTestsCellTemplate,
+        sortable: false,
+        flexGrow: 1
       },
       {
         name: '\u00A0',
         prop: this.columnIds.Requirement,
         cellTemplate: this.actionCellTemplate,
+        sortable: false,
+        resizeable: false,
         flexGrow: 1
       }
     ];
@@ -624,19 +665,26 @@ export class AppComponent implements OnInit {
       {
         name: 'Id',
         prop: 'Design',
-        resizeable: false,
         flexGrow: 1
       },
       {
         name: 'Location',
         prop: 'Location',
-        resizeable: false,
         flexGrow: 4
+      },
+      {
+        name: 'Used in tests',
+        prop: this.columnIds.Design,
+        cellTemplate: this.usedInTestsCellTemplate,
+        sortable: false,
+        flexGrow: 1
       },
       {
         name: '\u00A0',
         prop: this.columnIds.Design,
         cellTemplate: this.actionCellTemplate,
+        sortable: false,
+        resizeable: false,
         flexGrow: 1
       }
     ];

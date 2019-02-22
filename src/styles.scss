@@ -20,6 +20,10 @@ body {
   height: 100%;
 }
 
+.mat-tab-label {
+  height: 35px !important;
+}
+
 .mat-tab-body-content {
   display: flex;
   flex-direction: column;
