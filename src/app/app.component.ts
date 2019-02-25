@@ -52,7 +52,8 @@ export class AppComponent implements OnInit {
     Feature: 'Features',
     UserStory: 'UserStories',
     Design: 'DesignIds',
-    Test: 'Tests'
+    Test: 'Tests',
+    RDD: 'RDDs'
   };
 
   filters = {
@@ -312,6 +313,12 @@ export class AppComponent implements OnInit {
       if (!result) {
         this.selectedRDD.Location = backup.Location;
         this.selectedRDD.Release = backup.Release;
+      } else {
+        for (const test of this.testMetadata.Tests) {
+          if (test.Release === backup.Release) {
+            test.Release = this.selectedRDD.Release;
+          }
+        }
       }
     });
   }
@@ -463,6 +470,9 @@ export class AppComponent implements OnInit {
       case this.columnIds.Test:
         removeItem(this.testMetadata.Tests);
         this.testMetadata.Tests = [...this.testMetadata.Tests];
+        break;
+      case this.columnIds.RDD:
+        removeItem(this.testMetadata.RDDs);
         break;
     }
   }
