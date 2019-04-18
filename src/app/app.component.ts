@@ -398,7 +398,7 @@ export class AppComponent implements OnInit {
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
           if (displayProp) {
-            replaceInTests(this.columnIds[columnId], backup[displayProp], result[displayProp]);
+            replaceInTests(columnId, backup[displayProp], result[displayProp]);
           }
         } else {
           for (const key of Object.keys(item)) {
