@@ -7,6 +7,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -37,6 +38,7 @@ import { DesignDialog, FeatureDialog, RDDDialog, RequirementDialog, TestDialog, 
     MatTabsModule,
     MatSelectModule,
     MatSnackBarModule,
+    MatMenuModule,
     NgxDatatableModule
   ],
   providers: [],

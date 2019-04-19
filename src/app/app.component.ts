@@ -1,7 +1,7 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { ComponentType } from '@angular/cdk/overlay';
 import { Component, ElementRef, OnInit, QueryList, TemplateRef, ViewChild, ViewChildren } from '@angular/core';
-import { MatDialog, MatSnackBar } from '@angular/material';
+import { MatDialog, MatMenuTrigger, MatSnackBar } from '@angular/material';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import * as FileSaver from 'file-saver';
 import * as JsonFormatter from 'json-string-formatter';
@@ -34,6 +34,9 @@ export class AppComponent implements OnInit {
 
   @ViewChildren(DatatableComponent)
   private datatables: QueryList<DatatableComponent>;
+
+  @ViewChild(MatMenuTrigger)
+  private trigger: MatMenuTrigger;
 
   private testMetadataFilename: string;
 
@@ -164,7 +167,7 @@ export class AppComponent implements OnInit {
     test[prop].splice(index, 1);
   }
 
-  addValue(id: string, prop: string, event, input): void {
+  addValue(id: string, prop: string, event: { option: { value: string }; value: string }, input: { value: any }): void {
     let value: string;
 
     if (event.option) {
@@ -313,12 +316,6 @@ export class AppComponent implements OnInit {
       if (!result) {
         this.selectedRDD.Location = backup.Location;
         this.selectedRDD.Release = backup.Release;
-      } else {
-        for (const test of this.testMetadata.Tests) {
-          if (test.Release === backup.Release) {
-            test.Release = this.selectedRDD.Release;
-          }
-        }
       }
     });
   }
@@ -477,6 +474,68 @@ export class AppComponent implements OnInit {
     }
   }
 
+  private contextProp: string;
+  private contextTest: Test;
+
+  private clipboard = {
+    RequirementIds: [],
+    Features: [],
+    UserStories: [],
+    DesignIds: []
+  };
+
+  get pasteDisabled(): boolean {
+    return !this.contextProp || this.clipboard[this.contextProp].length === 0;
+  }
+
+  copy(): void {
+    if (!this.contextProp || !this.contextTest) {
+      return;
+    }
+
+    this.clipboard[this.contextProp] = this.contextTest[this.contextProp];
+  }
+
+  paste(): void {
+    if (!this.contextProp || !this.contextTest) {
+      return;
+    }
+
+    const set = new Set<string>(this.clipboard[this.contextProp].concat(this.contextTest[this.contextProp]));
+    this.contextTest[this.contextProp] = Array.from(set);
+  }
+
+  clear(): void {
+    if (!this.contextProp || !this.contextTest) {
+      return;
+    }
+
+    this.contextTest[this.contextProp] = [];
+  }
+
+  setContextProp(prop: string): void {
+    if (Object.keys(this.clipboard).includes(prop)) {
+      this.contextProp = prop;
+    }
+  }
+
+  onTableContextMenu(contextMenuEvent: { type: string; content: Test; event: MouseEvent }) {
+    if (contextMenuEvent.type !== 'body') {
+      return;
+    }
+
+    this.contextTest = contextMenuEvent.content;
+    const rawEvent = contextMenuEvent.event;
+    this.trigger.openMenu();
+    const menu = document.querySelector('.mat-menu-panel') as HTMLElement;
+    menu.style.position = 'absolute';
+    menu.style.left = `${rawEvent.x}px`;
+    menu.style.top = `${rawEvent.y}px`;
+
+    rawEvent.preventDefault();
+    rawEvent.stopPropagation();
+  }
+
   getUsageInTests(columnId: string, item: any): number {
     let value: string;
     let number = 0;
@@ -580,11 +639,6 @@ export class AppComponent implements OnInit {
         cellTemplate: this.multiselectCellTemplate,
         sortable: false,
         flexGrow: 2
-      },
-      {
-        name: 'Release',
-        prop: 'Release',
-        flexGrow: 0.75
       },
       {
         name: '\u00A0',

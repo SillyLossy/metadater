@@ -45,7 +45,6 @@ export class Test {
   RequirementIds: string[];
   Features: string[];
   UserStories: string[];
-  Release: string;
 }
 
 export class Design {

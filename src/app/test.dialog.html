@@ -3,10 +3,6 @@
   <mat-form-field>
     <input tabindex="1" placeholder="Id" matInput required [(ngModel)]="data.Id" />
   </mat-form-field>
-
-  <mat-form-field>
-    <input tabindex="2" placeholder="Release" matInput required [(ngModel)]="data.Release" />
-  </mat-form-field>
 </div>
 <div mat-dialog-actions>
   <button cdkFocusInitial tabindex="3" mat-button [disabled]="!valid" [mat-dialog-close]="data">Ok</button>

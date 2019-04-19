@@ -42,6 +42,7 @@
         </mat-form-field>
       </div>
 
+      <button mat-button [matMenuTriggerFor]="menu" id="menuButton" style="display:none; position:absolute;"></button>
       <ngx-datatable
         class="material"
         [columns]="testsColumns"
@@ -51,6 +52,7 @@
         [footerHeight]="'auto'"
         [headerHeight]="35"
         [rowHeight]="'auto'"
+        (tableContextmenu)="onTableContextMenu($event)"
       ></ngx-datatable>
     </ng-template>
   </mat-tab>
@@ -204,7 +206,7 @@
 </ng-template>
 
 <ng-template #multiselectCellTemplate let-row="row" let-column="column">
-  <mat-form-field class="chip-list" *ngIf="testMetadata">
+  <mat-form-field class="chip-list" *ngIf="testMetadata" (contextmenu)="setContextProp(column.prop)">
     <mat-chip-list #chipList>
       <mat-chip
         *ngFor="let value of getValues(row.Id, column.prop)"
@@ -231,3 +233,20 @@
     </mat-autocomplete>
   </mat-form-field>
 </ng-template>
+
+<mat-menu #menu="matMenu">
+  <ng-template matMenuContent>
+    <button mat-menu-item (click)="copy()">
+      <mat-icon>file_copy</mat-icon>
+      <span>Copy</span>
+    </button>
+    <button mat-menu-item (click)="paste()" [disabled]="pasteDisabled">
+      <mat-icon>assignment</mat-icon>
+      <span>Paste</span>
+    </button>
+    <button mat-menu-item (click)="clear()">
+      <mat-icon>delete</mat-icon>
+      <span>Clear</span>
+    </button>
+  </ng-template>
+</mat-menu>

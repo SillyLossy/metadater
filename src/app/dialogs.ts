@@ -101,6 +101,6 @@ export class TestDialog {
   }
 
   get valid(): boolean {
-    return !!this.data.Id && !!this.data.Release;
+    return !!this.data.Id;
   }
 }
