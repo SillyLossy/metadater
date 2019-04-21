@@ -308,8 +308,13 @@ export class AppComponent implements OnInit {
     let newTests = 0;
     let current = null;
     while ((current = result.iterateNext())) {
-      ++newTests;
       const id = current.value.replace('Id_', '');
+
+      if (this.testMetadata.Tests.filter(t => t.Id === id).length) {
+        continue;
+      }
+
+      ++newTests;
       this.testMetadata.Tests.unshift(new Test(id));
     }
     this.testMetadata.Tests = [...this.testMetadata.Tests];
