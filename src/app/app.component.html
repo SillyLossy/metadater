@@ -3,10 +3,24 @@
     Metadater
     <mat-icon>accessible_forward</mat-icon>
   </h1>
-  <button mat-raised-button (click)="openFeatureFileSelection()">Load feature file</button>
+  <button mat-raised-button [matMenuTriggerFor]="toolbarMenu">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <mat-menu #toolbarMenu="matMenu">
+    <ng-template matMenuContent>
+      <button mat-menu-item (click)="openMetadataSelection()">Load metadata</button>
+      <button mat-menu-item (click)="openFeatureFileSelection()">Load feature file</button>
+      <button mat-menu-item (click)="openTestResultSelection()" [disabled]="!testMetadata">
+        Add missing tests from XML
+      </button>
+      <button mat-menu-item (click)="loadBackup()" [disabled]="!hasBackup">Load backup metadata</button>
+    </ng-template>
+  </mat-menu>
+
   <input hidden type="file" accept=".feature" (change)="loadFeatureFile()" #featureFileInput />
-  <button mat-raised-button (click)="openMetadataSelection()">Load metadata</button>
   <input hidden type="file" accept=".json" (change)="loadMetadata()" #metadataFileInput />
+  <input hidden type="file" accept=".xml" (change)="loadTestResult()" #testResultFileInput />
+
   <button [disabled]="!testMetadata" mat-raised-button color="accent" (click)="saveMetadata()">Save metadata</button>
 
   <mat-chip-list>
@@ -42,7 +56,13 @@
         </mat-form-field>
       </div>
 
-      <button mat-button [matMenuTriggerFor]="menu" id="menuButton" style="display:none; position:absolute;"></button>
+      <button
+        mat-button
+        #contextMenuTrigger
+        [matMenuTriggerFor]="contextMenu"
+        id="menuButton"
+        style="display:none; position:absolute;"
+      ></button>
       <ngx-datatable
         class="material"
         [columns]="testsColumns"
@@ -224,6 +244,7 @@
         [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
         [matChipInputAddOnBlur]="'true'"
         (matChipInputTokenEnd)="addValue(row.Id, column.prop, $event, input)"
+        (mousedown)="filterAutocompleteEvent($event)"
       />
     </mat-chip-list>
     <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addValue(row.Id, column.prop, $event, input)">
@@ -234,7 +255,7 @@
   </mat-form-field>
 </ng-template>
 
-<mat-menu #menu="matMenu">
+<mat-menu #contextMenu="matMenu">
   <ng-template matMenuContent>
     <button mat-menu-item (click)="copy()">
       <mat-icon>file_copy</mat-icon>

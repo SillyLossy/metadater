@@ -1,6 +1,15 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { ComponentType } from '@angular/cdk/overlay';
-import { Component, ElementRef, OnInit, QueryList, TemplateRef, ViewChild, ViewChildren } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  QueryList,
+  TemplateRef,
+  ViewChild,
+  ViewChildren,
+  HostListener
+} from '@angular/core';
 import { MatDialog, MatMenuTrigger, MatSnackBar } from '@angular/material';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import * as FileSaver from 'file-saver';
@@ -32,10 +41,13 @@ export class AppComponent implements OnInit {
   @ViewChild('metadataFileInput')
   private metadataFileInput: ElementRef<HTMLInputElement>;
 
+  @ViewChild('testResultFileInput')
+  private testResultFileInput: ElementRef<HTMLInputElement>;
+
   @ViewChildren(DatatableComponent)
   private datatables: QueryList<DatatableComponent>;
 
-  @ViewChild(MatMenuTrigger)
+  @ViewChild('contextMenuTrigger', { read: MatMenuTrigger })
   private trigger: MatMenuTrigger;
 
   private testMetadataFilename: string;
@@ -58,6 +70,18 @@ export class AppComponent implements OnInit {
     Test: 'Tests',
     RDD: 'RDDs'
   };
+
+  private readonly backupKey = 'metadata';
+
+  private unsavedChanges = false;
+
+  @HostListener('window:beforeunload', ['$event'])
+  checkUnsaved(event: BeforeUnloadEvent) {
+    if (this.unsavedChanges) {
+      event.preventDefault();
+      event.returnValue = 'There are unsaved changes. Do you really want to exit?';
+    }
+  }
 
   filters = {
     Test: '',
@@ -156,6 +180,30 @@ export class AppComponent implements OnInit {
     return this.testMetadata ? 'OK' : 'not loaded';
   }
 
+  get hasBackup(): boolean {
+    return localStorage.getItem(this.backupKey) !== null;
+  }
+
+  saveBackup(): void {
+    this.unsavedChanges = true;
+    localStorage.setItem(this.backupKey, JSON.stringify(this.testMetadata));
+  }
+
+  loadBackup(): void {
+    const data = localStorage.getItem(this.backupKey);
+
+    if (data) {
+      this.testMetadata = Object.assign(new TestMetadata(), JSON.parse(data));
+    }
+  }
+
+  filterAutocompleteEvent(event: MouseEvent): void {
+    if (event.button === 2) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  }
+
   getValues(id: string, prop: string): string[] {
     const test = this.testMetadata.getTest(id);
     return test[prop];
@@ -165,6 +213,7 @@ export class AppComponent implements OnInit {
     const test = this.testMetadata.getTest(id);
     const index = test[prop].indexOf(value);
     test[prop].splice(index, 1);
+    this.saveBackup();
   }
 
   addValue(id: string, prop: string, event: { option: { value: string }; value: string }, input: { value: any }): void {
@@ -189,6 +238,7 @@ export class AppComponent implements OnInit {
     } else {
       console.log(`"${value}" is not a valid value for "${prop}"`);
     }
+    this.saveBackup();
   }
 
   private mapPropToStrings(prop: string): string[] {
@@ -228,6 +278,10 @@ export class AppComponent implements OnInit {
     this.featureFileInput.nativeElement.click();
   }
 
+  openTestResultSelection(): void {
+    this.testResultFileInput.nativeElement.click();
+  }
+
   async loadFeatureFile(): Promise<void> {
     const featureFile = this.featureFileInput.nativeElement.files.item(0);
     if (featureFile && featureFile.name) {
@@ -244,6 +298,23 @@ export class AppComponent implements OnInit {
     const text = await new Response(metadataFile).text();
     this.testMetadata = Object.assign(new TestMetadata(), JSON.parse(text));
     this.metadataFileInput.nativeElement.value = null;
+  }
+
+  async loadTestResult(): Promise<void> {
+    const testResultFile = this.testResultFileInput.nativeElement.files.item(0);
+    const xmlString = await new Response(testResultFile).text();
+    const doc = new DOMParser().parseFromString(xmlString, 'text/xml');
+    const result = doc.evaluate('//property[starts-with(@value,"Id_")]/@value', doc, null, XPathResult.ANY_TYPE, null);
+    let newTests = 0;
+    let current = null;
+    while ((current = result.iterateNext())) {
+      ++newTests;
+      const id = current.value.replace('Id_', '');
+      this.testMetadata.Tests.unshift(new Test(id));
+    }
+    this.testMetadata.Tests = [...this.testMetadata.Tests];
+    this.snackBar.open(`Added ${newTests} new tests from XML`, 'OK', { duration: 5000 });
+    this.testResultFileInput.nativeElement.value = null;
   }
 
   parseFeatureFile(content: string): Scenario[] {
@@ -291,6 +362,7 @@ export class AppComponent implements OnInit {
     const formatted = JsonFormatter.format(json);
     const blob = new Blob([formatted]);
     FileSaver.saveAs(blob, filename);
+    this.unsavedChanges = false;
   }
 
   addNewRDD(): void {
@@ -304,6 +376,7 @@ export class AppComponent implements OnInit {
         this.selectedRDD = result;
       }
     });
+    this.saveBackup();
   }
 
   editRDD(): void {
@@ -318,6 +391,7 @@ export class AppComponent implements OnInit {
         this.selectedRDD.Release = backup.Release;
       }
     });
+    this.saveBackup();
   }
 
   removeRDD(): void {
@@ -326,6 +400,7 @@ export class AppComponent implements OnInit {
       this.testMetadata.RDDs.splice(index, 1);
     }
     this.selectedRDD = null;
+    this.saveBackup();
   }
 
   addItem(columnId: string): void {
@@ -372,6 +447,8 @@ export class AppComponent implements OnInit {
         genericAdd(new UserStory(), UserStoryDialog, 'UserStories');
         break;
     }
+
+    this.saveBackup();
   }
 
   editItem(columnId: string, item: any): void {
@@ -422,6 +499,8 @@ export class AppComponent implements OnInit {
         genericEdit(TestDialog);
         break;
     }
+
+    this.saveBackup();
   }
 
   removeItem(columnId: string, item: any): void {
@@ -472,6 +551,8 @@ export class AppComponent implements OnInit {
         removeItem(this.testMetadata.RDDs);
         break;
     }
+
+    this.saveBackup();
   }
 
   private contextProp: string;
@@ -503,6 +584,7 @@ export class AppComponent implements OnInit {
 
     const set = new Set<string>(this.clipboard[this.contextProp].concat(this.contextTest[this.contextProp]));
     this.contextTest[this.contextProp] = Array.from(set);
+    this.saveBackup();
   }
 
   clear(): void {
@@ -511,6 +593,7 @@ export class AppComponent implements OnInit {
     }
 
     this.contextTest[this.contextProp] = [];
+    this.saveBackup();
   }
 
   setContextProp(prop: string): void {
