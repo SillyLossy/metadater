@@ -50,7 +50,15 @@
         <button [disabled]="!testMetadata" mat-mini-fab matTooltip="Add new test" (click)="addItem(columnIds.Test)">
           <mat-icon>note_add</mat-icon>
         </button>
-
+        <button
+          [disabled]="!testMetadata"
+          mat-mini-fab
+          color="primary"
+          matTooltip="Export Tests in CSV"
+          (click)="exportTests()"
+        >
+          <mat-icon>save_alt</mat-icon>
+        </button>
         <mat-form-field>
           <input placeholder="Filter" matInput [(ngModel)]="filters.Test" />
         </mat-form-field>
@@ -103,6 +111,15 @@
         >
           <mat-icon>remove</mat-icon>
         </button>
+        <button
+          [disabled]="!selectedRDD"
+          mat-mini-fab
+          color="primary"
+          matTooltip="Export requirements from current RDD in CSV"
+          (click)="exportRDD()"
+        >
+          <mat-icon>save_alt</mat-icon>
+        </button>
         <mat-form-field [floatLabel]="'true'">
           <mat-select placeholder="Release" [(ngModel)]="selectedRDD">
             <mat-option *ngFor="let rdd of RDDs" [value]="rdd">{{ rdd.Release }}</mat-option>
@@ -133,7 +150,15 @@
         <button [disabled]="!testMetadata" mat-mini-fab matTooltip="Add new Design" (click)="addItem(columnIds.Design)">
           <mat-icon>note_add</mat-icon>
         </button>
-
+        <button
+          [disabled]="!testMetadata"
+          mat-mini-fab
+          color="primary"
+          matTooltip="Export Designs in CSV"
+          (click)="exportDesigns()"
+        >
+          <mat-icon>save_alt</mat-icon>
+        </button>
         <mat-form-field>
           <input placeholder="Filter" matInput [(ngModel)]="filters.Design" />
         </mat-form-field>
@@ -162,7 +187,15 @@
         >
           <mat-icon>note_add</mat-icon>
         </button>
-
+        <button
+          [disabled]="!testMetadata"
+          mat-mini-fab
+          color="primary"
+          matTooltip="Export User Stories in CSV"
+          (click)="exportUserStories()"
+        >
+          <mat-icon>save_alt</mat-icon>
+        </button>
         <mat-form-field>
           <input placeholder="Filter" matInput [(ngModel)]="filters.UserStory" />
         </mat-form-field>
@@ -191,7 +224,15 @@
         >
           <mat-icon>note_add</mat-icon>
         </button>
-
+        <button
+          [disabled]="!testMetadata"
+          mat-mini-fab
+          color="primary"
+          matTooltip="Export Features in CSV"
+          (click)="exportFeatures()"
+        >
+          <mat-icon>save_alt</mat-icon>
+        </button>
         <mat-form-field>
           <input placeholder="Filter" matInput [(ngModel)]="filters.Feature" />
         </mat-form-field>

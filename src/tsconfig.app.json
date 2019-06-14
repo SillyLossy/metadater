@@ -2,7 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "outDir": "../out-tsc/app",
-    "types": ["file-saver"]
+    "types": ["file-saver", "json2csv"]
   },
   "exclude": ["test.ts", "**/*.spec.ts"]
 }

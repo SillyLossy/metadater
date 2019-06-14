@@ -1,19 +1,11 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { ComponentType } from '@angular/cdk/overlay';
-import {
-  Component,
-  ElementRef,
-  OnInit,
-  QueryList,
-  TemplateRef,
-  ViewChild,
-  ViewChildren,
-  HostListener
-} from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, QueryList, TemplateRef, ViewChild, ViewChildren } from '@angular/core';
 import { MatDialog, MatMenuTrigger, MatSnackBar } from '@angular/material';
 import { ColumnMode, DatatableComponent, TableColumn } from '@swimlane/ngx-datatable';
 import * as FileSaver from 'file-saver';
 import * as JsonFormatter from 'json-string-formatter';
+import json2csv, { Parser } from 'json2csv';
 
 import { DesignDialog, FeatureDialog, RDDDialog, RequirementDialog, TestDialog, UserStoryDialog } from './dialogs';
 import { Design, Feature, RDD, Requirement, Scenario, Test, TestMetadata, UserStory } from './models';
@@ -406,6 +398,160 @@ export class AppComponent implements OnInit {
     }
     this.selectedRDD = null;
     this.saveBackup();
+  }
+
+  exportRDD(): void {
+    const options = {
+      header: true,
+      fields: [
+        {
+          label: 'Id',
+          value: 'Id'
+        },
+        {
+          label: 'Description',
+          value: 'Description'
+        },
+        {
+          label: 'Used in tests',
+          value: 'Tests'
+        }
+      ]
+    } as json2csv.Options<{}>;
+    const data = this.selectedRDD.Requirements.map((value: any) => {
+      const clone = Object.assign({}, value);
+      clone.Tests = this.getUsageInTests(this.columnIds.Requirement, value);
+      return clone;
+    });
+    const parser = new Parser(options);
+    const csv = parser.parse(data);
+    const blob = new Blob([csv]);
+    FileSaver.saveAs(blob, `RDD ${this.selectedRDD.Release} requirements.csv`);
+  }
+
+  exportUserStories(): void {
+    const options = {
+      header: true,
+      fields: [
+        {
+          label: 'Id',
+          value: 'UserStory'
+        },
+        {
+          label: 'Location',
+          value: 'Location'
+        },
+        {
+          label: 'Used in tests',
+          value: 'Tests'
+        }
+      ]
+    } as json2csv.Options<{}>;
+
+    const data = this.testMetadata.UserStories.map((value: any) => {
+      const clone = Object.assign({}, value);
+      clone.Tests = this.getUsageInTests(this.columnIds.UserStory, value);
+      return clone;
+    });
+    const parser = new Parser(options);
+    const csv = parser.parse(data);
+    const blob = new Blob([csv]);
+    FileSaver.saveAs(blob, 'User Stories.csv');
+  }
+
+  exportFeatures(): void {
+    const options = {
+      header: true,
+      fields: [
+        {
+          label: 'Id',
+          value: 'Feature'
+        },
+        {
+          label: 'Location',
+          value: 'Location'
+        },
+        {
+          label: 'Used in tests',
+          value: 'Tests'
+        }
+      ]
+    } as json2csv.Options<{}>;
+
+    const data = this.testMetadata.Features.map((value: any) => {
+      const clone = Object.assign({}, value);
+      clone.Tests = this.getUsageInTests(this.columnIds.Feature, value);
+      return clone;
+    });
+    const parser = new Parser(options);
+    const csv = parser.parse(data);
+    const blob = new Blob([csv]);
+    FileSaver.saveAs(blob, 'Features.csv');
+  }
+
+  exportDesigns(): void {
+    const options = {
+      header: true,
+      fields: [
+        {
+          label: 'Id',
+          value: 'Design'
+        },
+        {
+          label: 'Location',
+          value: 'Location'
+        },
+        {
+          label: 'Used in tests',
+          value: 'Tests'
+        }
+      ]
+    } as json2csv.Options<{}>;
+
+    const data = this.testMetadata.Designs.map((value: any) => {
+      const clone = Object.assign({}, value);
+      clone.Tests = this.getUsageInTests(this.columnIds.Design, value);
+      return clone;
+    });
+    const parser = new Parser(options);
+    const csv = parser.parse(data);
+    const blob = new Blob([csv]);
+    FileSaver.saveAs(blob, 'Designs.csv');
+  }
+
+  exportTests(): void {
+    const options = {
+      header: true,
+      flatten: true,
+      fields: [
+        {
+          label: 'Id',
+          value: 'Id'
+        },
+        {
+          label: 'Designs',
+          value: 'DesignIds'
+        },
+        {
+          label: 'Requirements',
+          value: 'RequirementIds'
+        },
+        {
+          label: 'Features',
+          value: 'Features'
+        },
+        {
+          label: 'User Stories',
+          value: 'UserStories'
+        }
+      ]
+    } as json2csv.Options<{}>;
+
+    const data = this.testMetadata.Tests;
+    const parser = new Parser(options);
+    const csv = parser.parse(data);
+    const blob = new Blob([csv]);
+    FileSaver.saveAs(blob, 'Tests.csv');
   }
 
   addItem(columnId: string): void {
