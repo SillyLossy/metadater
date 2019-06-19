@@ -16,7 +16,7 @@ import { Design, Feature, RDD, Requirement, Scenario, Test, TestMetadata, UserSt
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  constructor(private snackBar: MatSnackBar, private dialog: MatDialog) {}
+  constructor(public readonly snackBar: MatSnackBar, public readonly dialog: MatDialog) {}
 
   @ViewChild('multiselectCellTemplate')
   private multiselectCellTemplate: TemplateRef<any>;
@@ -26,6 +26,9 @@ export class AppComponent implements OnInit {
 
   @ViewChild('usedInTestsCellTemplate')
   private usedInTestsCellTemplate: TemplateRef<any>;
+
+  @ViewChild('dupesSnackTemplate')
+  private dupesSnackTemplate: TemplateRef<any>;
 
   @ViewChild('featureFileInput')
   private featureFileInput: ElementRef<HTMLInputElement>;
@@ -186,6 +189,7 @@ export class AppComponent implements OnInit {
 
     if (data) {
       this.testMetadata = Object.assign(new TestMetadata(), JSON.parse(data));
+      this.checkDuplicates();
     }
   }
 
@@ -289,6 +293,7 @@ export class AppComponent implements OnInit {
     this.testMetadataFilename = metadataFile.name;
     const text = await new Response(metadataFile).text();
     this.testMetadata = Object.assign(new TestMetadata(), JSON.parse(text));
+    this.checkDuplicates();
     this.metadataFileInput.nativeElement.value = null;
   }
 
@@ -347,12 +352,41 @@ export class AppComponent implements OnInit {
     this.metadataFileInput.nativeElement.click();
   }
 
+  private cleanUpTests(): void {
+    for (const test of this.testMetadata.Tests) {
+      for (const requirement of test.RequirementIds) {
+        if (!this.testMetadata.Requirements.find(r => r.Id === requirement)) {
+          test.RequirementIds.splice(test.RequirementIds.indexOf(requirement), 1);
+        }
+      }
+
+      for (const design of test.DesignIds) {
+        if (!this.testMetadata.Designs.find(d => d.Design === design)) {
+          test.DesignIds.splice(test.DesignIds.indexOf(design), 1);
+        }
+      }
+
+      for (const feature of test.Features) {
+        if (!this.testMetadata.Features.find(f => f.Feature === feature)) {
+          test.Features.splice(test.Features.indexOf(feature), 1);
+        }
+      }
+
+      for (const userStory of test.UserStories) {
+        if (!this.testMetadata.UserStories.find(u => u.UserStory === userStory)) {
+          test.UserStories.splice(test.UserStories.indexOf(userStory), 1);
+        }
+      }
+    }
+  }
+
   saveMetadata() {
     if (!this.testMetadata) {
       this.snackBar.open('Load metadata first.', 'OK', { duration: 5000 });
       return;
     }
 
+    this.cleanUpTests();
     const defaultFilename = 'TestMetadata.json';
     const filename = this.testMetadataFilename ? this.testMetadataFilename : defaultFilename;
     const json = JSON.stringify(this.testMetadata);
@@ -360,6 +394,7 @@ export class AppComponent implements OnInit {
     const blob = new Blob([formatted]);
     FileSaver.saveAs(blob, filename);
     this.unsavedChanges = false;
+    this.checkDuplicates();
   }
 
   addNewRDD(): void {
@@ -715,6 +750,84 @@ export class AppComponent implements OnInit {
     UserStories: [],
     DesignIds: []
   };
+
+  dupesStatus = [];
+
+  private checkDuplicates(): void {
+    if (!this.testMetadata) {
+      return;
+    }
+
+    this.dupesStatus = [];
+    const testDupes = new Set<string>();
+
+    for (const test of this.testMetadata.Tests) {
+      if (this.testMetadata.Tests.filter(t => t.Id === test.Id).length > 1) {
+        testDupes.add(test.Id);
+      }
+    }
+
+    if (testDupes.size) {
+      this.dupesStatus.push('Duplicate tests found!');
+      this.dupesStatus.push(Array.from(testDupes).join(', '));
+    }
+
+    const requirementDupes = new Set<string>();
+
+    for (const requirement of this.testMetadata.Requirements) {
+      if (this.testMetadata.Requirements.filter(r => r.Id === requirement.Id).length > 1) {
+        requirementDupes.add(requirement.Id);
+      }
+    }
+
+    if (requirementDupes.size) {
+      this.dupesStatus.push('Duplicate requirements found!');
+      this.dupesStatus.push(Array.from(requirementDupes).join(', '));
+    }
+
+    const designDupes = new Set<string>();
+
+    for (const design of this.testMetadata.Designs) {
+      if (this.testMetadata.Designs.filter(d => d.Design === design.Design).length > 1) {
+        designDupes.add(design.Design);
+      }
+    }
+
+    if (designDupes.size) {
+      this.dupesStatus.push('Duplicate designs found!');
+      this.dupesStatus.push(Array.from(designDupes).join(', '));
+    }
+
+    const userStoryDupes = new Set<string>();
+
+    for (const userStory of this.testMetadata.UserStories) {
+      if (this.testMetadata.UserStories.filter(u => u.UserStory === userStory.UserStory).length > 1) {
+        userStoryDupes.add(userStory.UserStory);
+      }
+    }
+
+    if (userStoryDupes.size) {
+      this.dupesStatus.push('Duplicate user stories found!');
+      this.dupesStatus.push(Array.from(userStoryDupes).join(', '));
+    }
+
+    const featureDupes = new Set<string>();
+
+    for (const feature of this.testMetadata.Features) {
+      if (this.testMetadata.Features.filter(f => f.Feature === feature.Feature).length > 1) {
+        featureDupes.add(feature.Feature);
+      }
+    }
+
+    if (featureDupes.size) {
+      this.dupesStatus.push('Duplicate features found!');
+      this.dupesStatus.push(Array.from(featureDupes).join(', '));
+    }
+
+    if (this.dupesStatus.length) {
+      this.snackBar.openFromTemplate(this.dupesSnackTemplate);
+    }
+  }
 
   get pasteDisabled(): boolean {
     return !this.contextProp || this.clipboard[this.contextProp].length === 0;

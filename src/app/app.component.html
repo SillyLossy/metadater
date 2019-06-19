@@ -266,6 +266,13 @@
   <span>{{ getUsageInTests(column.prop, row) }} tests</span>
 </ng-template>
 
+<ng-template #dupesSnackTemplate>
+  <small>
+    <div *ngFor="let value of dupesStatus">{{ value }}</div>
+  </small>
+  <button mat-button color="accent" (click)="snackBar.dismiss()">Dismiss</button>
+</ng-template>
+
 <ng-template #multiselectCellTemplate let-row="row" let-column="column">
   <mat-form-field class="chip-list" *ngIf="testMetadata" (contextmenu)="setContextProp(column.prop)">
     <mat-chip-list #chipList>
