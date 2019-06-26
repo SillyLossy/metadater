@@ -660,6 +660,19 @@ export class AppComponent implements OnInit {
           if (displayProp) {
             replaceInTests(columnId, backup[displayProp], result[displayProp]);
           }
+          if (dialogClass === RequirementDialog) {
+            const oldName = backup.Id;
+            const newName = result.Id;
+
+            for (const requirement of this.selectedRDD.Requirements) {
+              if (requirement.Id.startsWith(oldName)) {
+                const oldId = requirement.Id;
+                const newId = oldId.replace(oldName, newName);
+                requirement.Id = newId;
+                replaceInTests(columnId, oldId, newId);
+              }
+            }
+          }
         } else {
           for (const key of Object.keys(item)) {
             item[key] = backup[key];
