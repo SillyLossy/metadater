@@ -667,7 +667,7 @@ export class AppComponent implements OnInit {
             for (const requirement of this.selectedRDD.Requirements) {
               if (requirement.Id.startsWith(oldName)) {
                 const oldId = requirement.Id;
-                const newId = oldId.replace(oldName, newName);
+                const newId = oldId.replace(new RegExp(`^${oldName}`), newName);
                 requirement.Id = newId;
                 replaceInTests(columnId, oldId, newId);
               }
